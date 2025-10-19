@@ -35,6 +35,7 @@ typedef struct {
     size_t capacity;
 } Cbl_String_Builder;
 
+
 bool cbl_read_entire_file(const char *path, Cbl_String_Builder *sb)
 {
     bool result = true;
@@ -66,6 +67,45 @@ defer:
     if (f) fclose(f);
     return result;
 }
+
+typedef struct {
+    size_t count;
+    const char *data;
+} Cbl_String_View;
+
+Cbl_String_View cbl_sv_from_parts(const char *data, size_t count) {
+    Cbl_String_View sv;
+    sv.count = count;
+    sv.data = data;
+    return sv;
+}
+
+#define cbl_sb_to_sv(sb) cbl_sv_from_parts((sb).items, (sb).count)
+
+Cbl_String_View cbl_sv_chop_by_delim(Cbl_String_View *sv, char delim)
+{
+    size_t i = 0;
+    while (i < sv->count && sv->data[i] != delim) {
+        i += 1;
+    }
+    
+    Cbl_String_View result = cbl_sv_from_parts(sv->data, i);
+    
+    if(i < sv->count) {
+        sv->count -= i + 1;
+        sv->data  += i + 1;
+    } else {
+        sv->count -= i;
+        sv->data  += i;
+    }
+    return result;
+}
+Cbl_String_View cbl_sv_chop_left(Cbl_String_View *sv, size_t n);
+Cbl_String_View cbl_sv_trim(Cbl_String_View sv);
+Cbl_String_View nob_sv_trim_left(Cbl_String_View sv);
+Cbl_String_View nob_sv_trim_right(Cbl_String_View sv);
+
+
 
 #ifndef CBL_STRIP_PREFIX_GUARD_
 #define CBL_STRIP_PREFIX_GUARD_
